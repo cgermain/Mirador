@@ -237,10 +237,10 @@ BorderSurface {
       height: cardHeader.height
       width: Math.max(height, badgeLabel.implicitWidth + Style.spacing.md * 2)
       radius: Math.min(Style.cornerRadius, Style.space(6))
-      // local patch: every badge is the accent blue; the selected one is green
-      color: root.isCurrent ? "#22c55e" : Commons.Color.accent
-      border.width: 0
-      border.color: "transparent"
+      // local patch: dark fill, stroke + number in accent blue; selected one green
+      color: Commons.Color.menu.background
+      border.width: Math.max(2, Style.normalBorderWidth)
+      border.color: root.isCurrent ? "#22c55e" : Commons.Color.accent
 
       Behavior on color {
         ColorAnimation { duration: 100 }
@@ -255,7 +255,7 @@ BorderSurface {
         font.family: Style.font.menuFamily
         font.pixelSize: Style.font.body
         font.bold: true
-        color: Commons.Color.menu.scrim
+        color: root.isCurrent ? "#22c55e" : Commons.Color.accent
         opacity: 1.0
 
         Behavior on opacity {
