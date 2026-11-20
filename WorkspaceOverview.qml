@@ -355,14 +355,23 @@ Item {
   function stepFullCycleWindow(delta) {
     var list = root.fullCycleWindows()
     if (list.length === 0) return false
-    var current = root.normalizedAddress(root.selectedWindowAddress)
-    if (!current) current = root.normalizedAddress(Hyprland.activeToplevel)
+    var activeAddress = root.normalizedAddress(Hyprland.activeToplevel)
+    var current = delta === 0
+      ? (activeAddress || root.normalizedAddress(root.selectedWindowAddress))
+      : (root.normalizedAddress(root.selectedWindowAddress) || activeAddress)
     var idx = -1
     for (var i = 0; i < list.length; i++) {
       if (list[i].address === current) { idx = i; break }
     }
+    if (delta === 0 && idx < 0 && current) {
+      // Active window isn't listed (e.g. the excluded agent console): keep it
+      // as the selection so releasing the modifier returns to it.
+      root.selectedWindowAddress = current
+      return true
+    }
     var next
-    if (idx < 0) next = delta > 0 ? 0 : list.length - 1
+    if (delta === 0) next = idx < 0 ? 0 : idx  // first open: highlight the active window
+    else if (idx < 0) next = delta > 0 ? 0 : list.length - 1
     else next = (idx + delta + list.length) % list.length
     root.selectedWindowAddress = list[next].address
     root.selectedCardIndex = list[next].cardIndex
@@ -373,13 +382,14 @@ Item {
     root.pendingWorkspaceNavigationTarget = -1
     root.cycled = true
     holdWatchdog.restart()
-    var stepVal = delta < 0 ? -1 : 1
+    var stepVal = delta < 0 ? -1 : (delta > 0 ? 1 : 0)
     if (root.activePresentation === "full" && root.stepFullCycleWindow(stepVal)) {
       if (root.demoMode && demoOverlay) {
         root.showDemoHint(stepVal < 0 ? "CYCLE PREV" : "CYCLE NEXT", false)
       }
       return
     }
+    if (stepVal === 0) stepVal = 1
     root.moveCardSelection(stepVal, 0)
     if (root.activePresentation === "carousel") {
       var curItem = (root.selectedCardIndex >= 0 && root.selectedCardIndex < root.overviewCardModel.length)
@@ -1420,7 +1430,7 @@ Item {
     if (root.activePresentation === "full" && root.keybindMode === "cycle") {
       var fullAddress = root.normalizedAddress(root.selectedWindowAddress)
       var fullTop = fullAddress ? root.toplevelForAddress(fullAddress) : null
-        if (fullTop) {
+          if (fullTop) {
         // Hyprland's focus dispatcher reveals a hidden special workspace by
         // itself when the target window lives there, so no toggle is needed.
         if (Hyprland.usingLua)
@@ -1734,10 +1744,13 @@ Item {
     root.livePreviewsReady = false
     root.opened = true
 
+    // Full overview opens on the active window (no initial step), so releasing
+    // the modifier straight away returns to it. Later Tab presses step.
+    var firstStepFull = root.activePresentation === "full"
     if (root.keybindMode === "cycle" && payload && typeof payload.step === "number") {
-      root.cycleStep(payload.step < 0 ? -1 : 1)
+      root.cycleStep(firstStepFull ? 0 : (payload.step < 0 ? -1 : 1))
     } else if (root.keybindMode === "cycle") {
-      root.cycleStep(1)
+      root.cycleStep(firstStepFull ? 0 : 1)
     }
 
     if (root.activePresentation === "carousel" && carouselCycleView) {
