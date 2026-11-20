@@ -2111,6 +2111,22 @@ Item {
     WlrLayershell.keyboardFocus: WlrKeyboardFocus.Exclusive
     exclusionMode: ExclusionMode.Ignore
 
+    // Local patch: in the full overview, cover the live windows with the
+    // current wallpaper so only the workspace cards show their windows.
+    Rectangle {
+      anchors.fill: parent
+      visible: root.activePresentation === "full"
+      color: "#000000"
+      Image {
+        anchors.fill: parent
+        fillMode: Image.PreserveAspectCrop
+        asynchronous: false
+        cache: true
+        source: "file://" + ((Quickshell.env("XDG_STATE_HOME") || (Quickshell.env("HOME") + "/.local/state"))
+          + "/omarchy/current/background")
+      }
+    }
+
     Rectangle {
       anchors.fill: parent
       color: root.activePresentation === "compact" ? Util.alpha("#000000", 0.35) : "transparent"
