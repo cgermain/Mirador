@@ -65,6 +65,11 @@ BorderSurface {
   readonly property bool isCurrent: root.keyboardSelected
     || (root.focused && (root.overview ? root.overview.selectedCardIndex < 0 : true))
   readonly property bool cardHovered: cardMouseArea.containsMouse
+  // local patch: mouse is over the card or any window preview inside it
+  // (HoverHandler is passive, so it also fires over child previews)
+  HoverHandler { id: cardHoverHandler }
+  readonly property bool mouseHot: cardHoverHandler.hovered
+  readonly property color hoverColor: "#facc15"
   readonly property bool highlighted: cardHovered && !isCurrent
 
   // ── Border widths ─────────────────────────────────────────────────────────
@@ -80,6 +85,7 @@ BorderSurface {
   // ── Border styling ────────────────────────────────────────────────────────
   readonly property color cardBorderColor: {
     if (dropHovered) return Commons.Color.accent
+    if (mouseHot && draggedToplevel === null) return hoverColor
     if (validDropTarget) return Util.alpha(Commons.Color.accent, 0.65)
     if (isCurrent) return windowCycle ? Commons.Color.menu.border : Commons.Color.accent
     if (highlighted) return Util.alpha(Commons.Color.menu.text, 0.70)
@@ -241,7 +247,7 @@ BorderSurface {
       // local patch: dark fill, stroke + number in accent blue; selected one green
       color: Commons.Color.menu.background
       border.width: 2
-      border.color: root.isCurrent ? "#22c55e" : Commons.Color.accent
+      border.color: (root.mouseHot && root.draggedToplevel === null) ? root.hoverColor : (root.isCurrent ? "#22c55e" : Commons.Color.accent)
 
       Behavior on color {
         ColorAnimation { duration: 100 }
@@ -256,7 +262,7 @@ BorderSurface {
         font.family: Style.font.menuFamily
         font.pixelSize: Style.font.body
         font.bold: true
-        color: root.isCurrent ? "#22c55e" : Commons.Color.accent
+        color: (root.mouseHot && root.draggedToplevel === null) ? root.hoverColor : (root.isCurrent ? "#22c55e" : Commons.Color.accent)
         opacity: 1.0
 
         Behavior on opacity {
