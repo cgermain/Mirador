@@ -425,7 +425,7 @@ BorderSurface {
     z: 100
     color: "transparent"
     radius: root.radius
-    border.width: root.windowCount > 1 ? 0 : root.cardBorderWidth
+    border.width: root.cardBorderWidth  // local patch: outer border on multi-window cards too
     border.color: root.cardBorderColor
   }
 }
