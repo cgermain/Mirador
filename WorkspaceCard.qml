@@ -85,7 +85,6 @@ BorderSurface {
   // ── Border styling ────────────────────────────────────────────────────────
   readonly property color cardBorderColor: {
     if (dropHovered) return Commons.Color.accent
-    if (mouseHot && draggedToplevel === null) return hoverColor
     if (validDropTarget) return Util.alpha(Commons.Color.accent, 0.65)
     if (isCurrent) return windowCycle ? Commons.Color.menu.border : Commons.Color.accent
     if (highlighted) return Util.alpha(Commons.Color.menu.text, 0.70)
