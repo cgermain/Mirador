@@ -2115,6 +2115,10 @@ Item {
     // current wallpaper so only the workspace cards show their windows.
     Rectangle {
       anchors.fill: parent
+      anchors.topMargin: root.barInsetTop
+      anchors.bottomMargin: root.barInsetBottom
+      anchors.leftMargin: root.barPosition === "left" ? root.barPixels : 0
+      anchors.rightMargin: root.barPosition === "right" ? root.barPixels : 0
       visible: root.activePresentation === "full"
       color: "#000000"
       Image {
