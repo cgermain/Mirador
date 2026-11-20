@@ -856,6 +856,12 @@ Item {
       }
     }
 
+    // Local patch: the quake-style agent console only ever hosts the agent
+    // terminal, so it is never shown as a scratchpad card.
+    specials = specials.filter(function(w) {
+      return root.specialWorkspaceName(w) !== "qconsole"
+    })
+
     specials.sort(function(a, b) {
       return String(root.specialWorkspaceName(a)).localeCompare(String(root.specialWorkspaceName(b)))
     })
