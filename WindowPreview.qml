@@ -167,8 +167,8 @@ Rectangle {
     z: 5
     color: "transparent"
     border.width: root.keyboardSelected
-      ? (root.showSelectionBorder ? Math.max(2, Style.normalBorderWidth * 2) : 0)
-      : (root.workspaceHighlighted || previewHover.hovered || root.dragging ? Math.max(1, Style.normalBorderWidth) : 0)
+      ? (root.showSelectionBorder ? 2 : 0)
+      : (root.workspaceHighlighted || previewHover.hovered || root.dragging ? 2 : 0)
     // local patch: green = keyboard-selected window
     border.color: root.keyboardSelected ? "#22c55e"
       : (root.workspaceHighlighted || root.dragging) ? Commons.Color.accent : Util.alpha(Commons.Color.menu.text, 0.58)

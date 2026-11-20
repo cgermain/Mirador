@@ -68,8 +68,9 @@ BorderSurface {
   readonly property bool highlighted: cardHovered && !isCurrent
 
   // ── Border widths ─────────────────────────────────────────────────────────
-  readonly property int activeBorderWidth: Math.max(Style.space(2), Style.focusBorderWidth)
-  readonly property int normalBorderWidth: Math.max(1, Style.normalBorderWidth)
+  // local patch: one consistent 2px stroke for every workspace card
+  readonly property int activeBorderWidth: 2
+  readonly property int normalBorderWidth: 2
 
   // Local patch: while hold-to-cycle steps through windows in the full
   // overview, only the selected window is highlighted (not its workspace).
@@ -239,7 +240,7 @@ BorderSurface {
       radius: Math.min(Style.cornerRadius, Style.space(6))
       // local patch: dark fill, stroke + number in accent blue; selected one green
       color: Commons.Color.menu.background
-      border.width: Math.max(2, Style.normalBorderWidth)
+      border.width: 2
       border.color: root.isCurrent ? "#22c55e" : Commons.Color.accent
 
       Behavior on color {
