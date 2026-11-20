@@ -246,7 +246,7 @@ BorderSurface {
       // local patch: dark fill, stroke + number in accent blue; selected one green
       color: Commons.Color.menu.background
       border.width: 2
-      border.color: (root.mouseHot && root.draggedToplevel === null) ? root.hoverColor : (root.isCurrent ? "#22c55e" : Commons.Color.accent)
+      border.color: root.isCurrent ? "#22c55e" : ((root.mouseHot && root.draggedToplevel === null) ? root.hoverColor : Commons.Color.accent)
 
       Behavior on color {
         ColorAnimation { duration: 100 }
@@ -261,7 +261,7 @@ BorderSurface {
         font.family: Style.font.menuFamily
         font.pixelSize: Style.font.body
         font.bold: true
-        color: (root.mouseHot && root.draggedToplevel === null) ? root.hoverColor : (root.isCurrent ? "#22c55e" : Commons.Color.accent)
+        color: root.isCurrent ? "#22c55e" : ((root.mouseHot && root.draggedToplevel === null) ? root.hoverColor : Commons.Color.accent)
         opacity: 1.0
 
         Behavior on opacity {
