@@ -244,7 +244,7 @@ BorderSurface {
       width: Math.max(height, badgeLabel.implicitWidth + Style.spacing.md * 2)
       radius: Math.min(Style.cornerRadius, Style.space(6))
       // local patch: dark fill, stroke + number in accent blue; selected one green
-      color: Commons.Color.menu.background
+      color: root.isScratchpad ? "#facc15" : Commons.Color.menu.background  // S badge: solid yellow fill
       border.width: 2
       border.color: root.isCurrent ? "#22c55e" : ((root.mouseHot && root.draggedToplevel === null) ? root.hoverColor : Commons.Color.accent)
 
@@ -261,7 +261,8 @@ BorderSurface {
         font.family: Style.font.menuFamily
         font.pixelSize: Style.font.body
         font.bold: true
-        color: root.isCurrent ? "#22c55e" : ((root.mouseHot && root.draggedToplevel === null) ? root.hoverColor : Commons.Color.accent)
+        color: root.isScratchpad ? "#14141a"  // dark number on the yellow S badge
+          : (root.isCurrent ? "#22c55e" : ((root.mouseHot && root.draggedToplevel === null) ? root.hoverColor : Commons.Color.accent))
         opacity: 1.0
 
         Behavior on opacity {
