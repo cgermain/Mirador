@@ -166,11 +166,13 @@ Rectangle {
     anchors.fill: parent
     z: 5
     color: "transparent"
-    border.width: root.keyboardSelected
+    border.width: previewHover.hovered ? 2
+      : root.keyboardSelected
       ? (root.showSelectionBorder ? 2 : 0)
       : (root.workspaceHighlighted || previewHover.hovered || root.dragging ? 2 : 0)
     // local patch: green = keyboard-selected window
-    border.color: root.keyboardSelected ? "#22c55e"
+    border.color: previewHover.hovered ? "#facc15"  // mouse hover = yellow
+      : root.keyboardSelected ? "#22c55e"
       : (root.workspaceHighlighted || root.dragging) ? Commons.Color.accent : Util.alpha(Commons.Color.menu.text, 0.58)
     radius: root.radius
   }
