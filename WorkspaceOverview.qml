@@ -24,6 +24,29 @@ Item {
   onDraggedToplevelChanged: if (!root.draggedToplevel && jiggle) jiggle.endDrag()
   property int selectedCardIndex: -1
   property string selectedWindowAddress: ""
+  // local patch: what the last interaction was, so Super+W closes the window
+  // the user most recently pointed at (mouse) or tabbed to (keyboard).
+  property string hoveredWindowAddress: ""
+  property string lastInteraction: "keyboard"
+  property real openedAt: 0
+  function noteMouseOver(toplevel) {
+    if (Date.now() - root.openedAt < 300) return  // ignore the cursor resting under the overlay at open
+    var address = root.normalizedAddress(toplevel)
+    if (!address) return
+    root.hoveredWindowAddress = address
+    root.lastInteraction = "mouse"
+  }
+  function noteMouseLeft(toplevel) {
+    if (root.normalizedAddress(toplevel) === root.hoveredWindowAddress) root.hoveredWindowAddress = ""
+  }
+  Timer {
+    id: postCloseReselect
+    interval: 220
+    onTriggered: {
+      root.selectedWindowAddress = ""
+      root.stepFullCycleWindow(0)
+    }
+  }
   property string overviewMode: "normal"
   property string keybindMode: "normal"
   property string configuredModifier: "super"
@@ -67,6 +90,9 @@ Item {
   }
   onOpenedChanged: {
     if (root.opened) {
+      root.openedAt = Date.now()
+      root.hoveredWindowAddress = ""
+      root.lastInteraction = "keyboard"
       mouseBindsOn.running = false
       mouseBindsOff.running = true
     } else {
@@ -404,6 +430,7 @@ Item {
     else next = (idx + delta + list.length) % list.length
     root.selectedWindowAddress = list[next].address
     root.selectedCardIndex = list[next].cardIndex
+    if (delta !== 0) root.lastInteraction = "keyboard"
     return true
   }
 
@@ -1627,7 +1654,18 @@ Item {
     // carousel closes always use an explicit address and normal desktop closes
     // retain Hyprland's usual active-window behavior.
     if (payload && payload.action === "closeWindow") {
-      if (root.opened) {
+      if (root.opened && root.activePresentation === "full") {
+        var closeAddress = (root.lastInteraction === "mouse" && root.hoveredWindowAddress)
+          ? root.hoveredWindowAddress : root.normalizedAddress(root.selectedWindowAddress)
+        var closeTop = closeAddress ? root.toplevelForAddress(closeAddress) : null
+        if (closeTop) {
+          root.closeWindow(closeTop)
+          if (closeAddress === root.hoveredWindowAddress) root.hoveredWindowAddress = ""
+          if (closeAddress === root.normalizedAddress(root.selectedWindowAddress)) postCloseReselect.restart()
+        } else {
+          root.closeActiveWindowInSelectedWorkspace()
+        }
+      } else if (root.opened) {
         root.closeActiveWindowInSelectedWorkspace()
       } else if (Hyprland.usingLua) {
         Hyprland.dispatch("hl.dsp.window.close()")
@@ -2234,6 +2272,7 @@ Item {
       }
 
       onMoveRequested: function(dx, dy) {
+        root.lastInteraction = "keyboard"
         if (root.cycled) holdWatchdog.restart()
         if (root.activePresentation !== "carousel" || !root.moveSelectedWindow(dx, dy)) {
           root.moveCardSelection(dx, dy)

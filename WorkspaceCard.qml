@@ -384,6 +384,8 @@ BorderSurface {
           z: keyboardSelected ? 90 : itemIndex + 1
           toplevel: previewToplevel
           workspaceHighlighted: root.isCurrent && root.windowCount > 1 && !root.windowCycle
+          onPointerMoved: if (root.overview) root.overview.noteMouseOver(previewToplevel)
+          onHoverActiveChanged: if (!hoverActive && root.overview) root.overview.noteMouseLeft(previewToplevel)
           keyboardSelected: root.overview !== null && root.overview.activePresentation === "full"
             && root.overview.isSelectedWindow(previewToplevel)
           isGroup: Boolean(modelData && modelData.isGroup)

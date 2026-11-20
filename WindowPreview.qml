@@ -20,6 +20,7 @@ Rectangle {
   readonly property bool activatable: waylandToplevel !== null || (toplevel && String(toplevel.address || "") !== "")
   readonly property bool movable: toplevel !== null && String(toplevel.address || "") !== ""
   readonly property bool dragging: dragProxy.dragSessionActive
+  readonly property bool hoverActive: previewHover.hovered  // local patch
   readonly property string appId: root.appIdFor(toplevel)
   readonly property string title: root.titleFor(toplevel)
   readonly property string iconSource: root.iconFor(toplevel)
@@ -48,6 +49,7 @@ Rectangle {
   property bool workspaceHighlighted: false
 
   signal activated()
+  signal pointerMoved()  // local patch: real mouse motion over this preview
   signal tabActivated(var targetToplevel)
   signal dragStarted(var toplevel)
   signal dragFinished(var toplevel)
@@ -294,6 +296,7 @@ Rectangle {
 
   HoverHandler {
     id: previewHover
+    onPointChanged: if (hovered) root.pointerMoved()
     cursorShape: root.dragging ? Qt.ClosedHandCursor
       : (root.activatable || root.movable ? Qt.PointingHandCursor : Qt.ArrowCursor)
   }
