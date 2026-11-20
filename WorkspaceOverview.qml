@@ -332,9 +332,8 @@ Item {
     for (var i = 0; i < root.overviewCardModel.length; i++) {
       var item = root.overviewCardModel[i]
       if (!item) continue
-      if (typeof item === "object" && (item.isInsertion || item.isScratchpad)) continue
+      if (typeof item === "object" && item.isInsertion) continue
       var wsId = typeof item === "object" ? item.workspaceId : item
-      if (root.isSpecialWorkspace(root.workspaceById(wsId))) continue
       var group = []
       for (var t = 0; t < tops.length; t++) {
         var top = tops[t]
@@ -1420,7 +1419,14 @@ Item {
     }
     if (root.activePresentation === "full" && root.keybindMode === "cycle") {
       var fullAddress = root.normalizedAddress(root.selectedWindowAddress)
-      if (fullAddress && root.toplevelForAddress(fullAddress)) {
+      var fullTop = fullAddress ? root.toplevelForAddress(fullAddress) : null
+      if (fullTop) {
+        // Windows on a scratchpad (special) workspace: reveal it first.
+        var fullWs = fullTop.workspace || (fullTop.lastIpcObject && fullTop.lastIpcObject.workspace)
+        if (fullWs && root.isSpecialWorkspace(fullWs)) {
+          var fullSpecial = root.specialWorkspaceName(fullWs)
+          if (!root.isSpecialWorkspaceActive(fullSpecial)) root.toggleSpecialWorkspace(fullSpecial)
+        }
         if (Hyprland.usingLua)
           Hyprland.dispatch("hl.dsp.focus({ window = \"address:" + fullAddress + "\" })")
         else
