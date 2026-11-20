@@ -246,7 +246,8 @@ BorderSurface {
       // local patch: dark fill, stroke + number in accent blue; selected one green
       color: root.isScratchpad ? "#facc15" : Commons.Color.menu.background  // S badge: solid yellow fill
       border.width: 2
-      border.color: root.isCurrent ? "#22c55e" : ((root.mouseHot && root.draggedToplevel === null) ? root.hoverColor : Commons.Color.accent)
+      border.color: root.isScratchpad ? "#facc15"  // S badge stroke is always yellow
+        : (root.isCurrent ? "#22c55e" : ((root.mouseHot && root.draggedToplevel === null) ? root.hoverColor : Commons.Color.accent))
 
       Behavior on color {
         ColorAnimation { duration: 100 }
