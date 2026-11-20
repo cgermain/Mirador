@@ -358,8 +358,10 @@ BorderSurface {
             targetScreen,
             spatialPreview.width,
             spatialPreview.height,
-            Math.min(spatialPreview.width, Math.max(Style.space(56), spatialPreview.width * 0.15)),
-            Math.min(spatialPreview.height, Math.max(Style.space(40), spatialPreview.height * 0.20)))
+            // local patch: tiny minimum so small tiled windows keep their true
+            // geometry instead of being inflated into overlapping rectangles.
+            Math.min(spatialPreview.width, Style.space(6)),
+            Math.min(spatialPreview.height, Style.space(6)))
           readonly property var displayGeometry: previewGeometry.valid
             ? previewGeometry
             : WindowGeometry.fallbackGeometry(itemIndex, root.windowCount,
@@ -374,7 +376,7 @@ BorderSurface {
           y: WindowGeometry.snapToDevicePixels(displayGeometry.y, dpr)
           width: Math.max(1, WindowGeometry.snapToDevicePixels(displayGeometry.width, dpr))
           height: Math.max(1, WindowGeometry.snapToDevicePixels(displayGeometry.height, dpr))
-          z: itemIndex + 1
+          z: keyboardSelected ? 90 : itemIndex + 1
           toplevel: previewToplevel
           workspaceHighlighted: root.isCurrent && root.windowCount > 1 && !root.windowCycle
           keyboardSelected: root.overview !== null && root.overview.activePresentation === "full"
