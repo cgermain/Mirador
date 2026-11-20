@@ -169,8 +169,9 @@ Rectangle {
     border.width: root.keyboardSelected
       ? (root.showSelectionBorder ? Math.max(2, Style.normalBorderWidth * 2) : 0)
       : (root.workspaceHighlighted || previewHover.hovered || root.dragging ? Math.max(1, Style.normalBorderWidth) : 0)
-    border.color: root.workspaceHighlighted || root.keyboardSelected || root.dragging
-      ? Commons.Color.accent : Util.alpha(Commons.Color.menu.text, 0.58)
+    // local patch: green = keyboard-selected window
+    border.color: root.keyboardSelected ? "#22c55e"
+      : (root.workspaceHighlighted || root.dragging) ? Commons.Color.accent : Util.alpha(Commons.Color.menu.text, 0.58)
     radius: root.radius
   }
 

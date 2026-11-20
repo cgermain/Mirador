@@ -71,15 +71,20 @@ BorderSurface {
   readonly property int activeBorderWidth: Math.max(Style.space(2), Style.focusBorderWidth)
   readonly property int normalBorderWidth: Math.max(1, Style.normalBorderWidth)
 
+  // Local patch: while hold-to-cycle steps through windows in the full
+  // overview, only the selected window is highlighted (not its workspace).
+  readonly property bool windowCycle: root.overview !== null
+    && root.overview.activePresentation === "full" && root.overview.keybindMode === "cycle"
+
   // ── Border styling ────────────────────────────────────────────────────────
   readonly property color cardBorderColor: {
     if (dropHovered) return Commons.Color.accent
     if (validDropTarget) return Util.alpha(Commons.Color.accent, 0.65)
-    if (isCurrent) return Commons.Color.accent
+    if (isCurrent) return windowCycle ? Commons.Color.menu.border : Commons.Color.accent
     if (highlighted) return Util.alpha(Commons.Color.menu.text, 0.70)
     return Commons.Color.menu.border
   }
-  readonly property int cardBorderWidth: (dropHovered || isCurrent) ? activeBorderWidth : normalBorderWidth
+  readonly property int cardBorderWidth: (dropHovered || (isCurrent && !windowCycle)) ? activeBorderWidth : normalBorderWidth
   readonly property var cardBorderSpec: Border.flat(cardBorderColor, cardBorderWidth)
 
   // ── Workspace Card Opacity ────────────────────────────────────────────────
@@ -378,7 +383,9 @@ BorderSurface {
           height: Math.max(1, WindowGeometry.snapToDevicePixels(displayGeometry.height, dpr))
           z: itemIndex + 1
           toplevel: previewToplevel
-          workspaceHighlighted: root.isCurrent && root.windowCount > 1
+          workspaceHighlighted: root.isCurrent && root.windowCount > 1 && !root.windowCycle
+          keyboardSelected: root.overview !== null && root.overview.activePresentation === "full"
+            && root.overview.isSelectedWindow(previewToplevel)
           isGroup: Boolean(modelData && modelData.isGroup)
           groupMembers: (modelData && modelData.members) ? modelData.members : []
           liveCaptureEnabled: root.livePreviews && root.visible && previewArea.visible

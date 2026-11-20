@@ -323,11 +323,64 @@ Item {
         || key === Qt.Key_Hyper_L || key === Qt.Key_Hyper_R
   }
 
+  // ── Full-overview window cycling (local patch) ──────────────────────────────
+  // Flat list of every window on normal workspaces, in card order, then
+  // top-to-bottom / left-to-right within a workspace.
+  function fullCycleWindows() {
+    var out = []
+    var tops = (Hyprland.toplevels && Hyprland.toplevels.values) ? Hyprland.toplevels.values : []
+    for (var i = 0; i < root.overviewCardModel.length; i++) {
+      var item = root.overviewCardModel[i]
+      if (!item) continue
+      if (typeof item === "object" && (item.isInsertion || item.isScratchpad)) continue
+      var wsId = typeof item === "object" ? item.workspaceId : item
+      if (root.isSpecialWorkspace(root.workspaceById(wsId))) continue
+      var group = []
+      for (var t = 0; t < tops.length; t++) {
+        var top = tops[t]
+        if (!top) continue
+        var ipc = top.lastIpcObject || {}
+        var tws = top.workspace || ipc.workspace
+        if (!tws || !(tws.id === wsId || String(tws.id) === String(wsId))) continue
+        var address = root.normalizedAddress(top)
+        if (!address) continue
+        var at = ipc.at || [0, 0]
+        group.push({ address: address, cardIndex: i, x: at[0] || 0, y: at[1] || 0 })
+      }
+      group.sort(function(a, b) { return (a.y - b.y) || (a.x - b.x) })
+      out = out.concat(group)
+    }
+    return out
+  }
+
+  function stepFullCycleWindow(delta) {
+    var list = root.fullCycleWindows()
+    if (list.length === 0) return false
+    var current = root.normalizedAddress(root.selectedWindowAddress)
+    if (!current) current = root.normalizedAddress(Hyprland.activeToplevel)
+    var idx = -1
+    for (var i = 0; i < list.length; i++) {
+      if (list[i].address === current) { idx = i; break }
+    }
+    var next
+    if (idx < 0) next = delta > 0 ? 0 : list.length - 1
+    else next = (idx + delta + list.length) % list.length
+    root.selectedWindowAddress = list[next].address
+    root.selectedCardIndex = list[next].cardIndex
+    return true
+  }
+
   function cycleStep(delta) {
     root.pendingWorkspaceNavigationTarget = -1
     root.cycled = true
     holdWatchdog.restart()
     var stepVal = delta < 0 ? -1 : 1
+    if (root.activePresentation === "full" && root.stepFullCycleWindow(stepVal)) {
+      if (root.demoMode && demoOverlay) {
+        root.showDemoHint(stepVal < 0 ? "CYCLE PREV" : "CYCLE NEXT", false)
+      }
+      return
+    }
     root.moveCardSelection(stepVal, 0)
     if (root.activePresentation === "carousel") {
       var curItem = (root.selectedCardIndex >= 0 && root.selectedCardIndex < root.overviewCardModel.length)
@@ -1313,6 +1366,8 @@ Item {
   }
 
   function resetSelectedWindowSelection() {
+    if (root.activePresentation === "full" && root.keybindMode === "cycle"
+        && root.cycled && root.selectedWindowAddress !== "") return
     root.selectedWindowAddress = ""
     if (root.selectedCardIndex < 0 || root.selectedCardIndex >= root.overviewCardModel.length) return
     var item = root.overviewCardModel[root.selectedCardIndex]
@@ -1352,6 +1407,17 @@ Item {
       root.dispatchWorkspace(pendingWorkspaceTarget)
       root.dismiss()
       return
+    }
+    if (root.activePresentation === "full" && root.keybindMode === "cycle") {
+      var fullAddress = root.normalizedAddress(root.selectedWindowAddress)
+      if (fullAddress && root.toplevelForAddress(fullAddress)) {
+        if (Hyprland.usingLua)
+          Hyprland.dispatch("hl.dsp.focus({ window = \"address:" + fullAddress + "\" })")
+        else
+          Hyprland.dispatch("focuswindow address:" + fullAddress)
+        root.dismiss()
+        return
+      }
     }
     var index = root.selectedCardIndex
     if (index < 0 || index >= root.cardCount) return
