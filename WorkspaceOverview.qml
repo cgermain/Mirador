@@ -51,10 +51,39 @@ Item {
     return rows
   }
 
+  // local patch: while the overview is open, drop Hyprland's Super+click
+  // move/resize binds so Super+clicking a preview just activates that window
+  // instead of dragging the real windows around. Restored on close/destroy.
+  Process {
+    id: mouseBindsOff
+    command: ["hyprctl", "repl", 'hl.unbind("SUPER + mouse:272"); hl.unbind("SUPER + mouse:273")']
+  }
+  Process {
+    id: mouseBindsOn
+    command: ["hyprctl", "repl",
+      'hl.unbind("SUPER + mouse:272"); hl.unbind("SUPER + mouse:273"); '
+      + 'hl.bind("SUPER + mouse:272", hl.dsp.window.drag(), { mouse = true, description = "Move window" }); '
+      + 'hl.bind("SUPER + mouse:273", hl.dsp.window.resize(), { mouse = true, description = "Resize window" })']
+  }
+  onOpenedChanged: {
+    if (root.opened) {
+      mouseBindsOn.running = false
+      mouseBindsOff.running = true
+    } else {
+      mouseBindsOff.running = false
+      mouseBindsOn.running = true
+    }
+  }
+  Component.onDestruction: {
+    if (root.opened)
+      Quickshell.execDetached(["hyprctl", "repl", mouseBindsOn.command[2]])
+  }
+
   JiggleController {
     id: jiggle
     scene: keyCatcher
-    enabled: root.opened && root.targetScreen !== null && root.activePresentation !== "compact"
+    // local patch: workspace spring/bounce motion disabled
+    enabled: false
     presentation: root.activePresentation
     dpr: root.gridDpr
     snapshotProvider: root.jiggleSnapshot
