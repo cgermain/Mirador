@@ -1036,6 +1036,10 @@ Item {
       })()
 
       if (isSpecial) {
+        // Local patch: the quake-style agent console (special:qconsole) only
+        // ever hosts the agent terminal, so never show it as a card.
+        var specialLabel = ws && ws.name ? String(ws.name) : String(id)
+        if (specialLabel === "special:qconsole" || specialLabel === "qconsole") continue
         specialIds.push(id)
       } else {
         regularIds.push(id)
