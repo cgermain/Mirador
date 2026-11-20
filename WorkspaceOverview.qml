@@ -1420,18 +1420,17 @@ Item {
     if (root.activePresentation === "full" && root.keybindMode === "cycle") {
       var fullAddress = root.normalizedAddress(root.selectedWindowAddress)
       var fullTop = fullAddress ? root.toplevelForAddress(fullAddress) : null
-      if (fullTop) {
-        // Windows on a scratchpad (special) workspace: reveal it first.
-        var fullWs = fullTop.workspace || (fullTop.lastIpcObject && fullTop.lastIpcObject.workspace)
-        if (fullWs && root.isSpecialWorkspace(fullWs)) {
-          var fullSpecial = root.specialWorkspaceName(fullWs)
-          if (!root.isSpecialWorkspaceActive(fullSpecial)) root.toggleSpecialWorkspace(fullSpecial)
-        }
+        if (fullTop) {
+        // Hyprland's focus dispatcher reveals a hidden special workspace by
+        // itself when the target window lives there, so no toggle is needed.
         if (Hyprland.usingLua)
           Hyprland.dispatch("hl.dsp.focus({ window = \"address:" + fullAddress + "\" })")
         else
           Hyprland.dispatch("focuswindow address:" + fullAddress)
         root.dismiss()
+        // Focus again once the overlay has released exclusive keyboard focus;
+        // the first dispatch can be dropped while Mirador still holds it.
+        root.scheduleCompositorFocusRestore(null, fullAddress)
         return
       }
     }
